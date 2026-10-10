@@ -1,0 +1,78 @@
+{
+  "system": {
+    "app_name": "Smart Road Vision",
+    "version": "1.0.0",
+    "environment": "desktop",
+    "author": "Final Year Major Project - Computer Science & Engineering"
+  },
+  "detection": {
+    "model_path": "models/yolov8n.pt",
+    "confidence_threshold": 0.35,
+    "iou_threshold": 0.45,
+    "target_classes": [0, 2, 3, 5, 7],
+    "class_names_map": {
+      "0": "person",
+      "2": "car",
+      "3": "motorcycle",
+      "5": "bus",
+      "7": "truck"
+    },
+    "tracker_type": "bytetrack.yaml",
+    "custom_helmet_model": "",
+    "custom_emergency_model": ""
+  },
+  "video": {
+    "default_source_type": "file",
+    "webcam_index": 0,
+    "default_video_path": "",
+    "rtsp_url": "",
+    "target_fps": 30,
+    "display_width": 720,
+    "display_height": 480
+  },
+  "density": {
+    "enabled": true,
+    "low_threshold": 3,
+    "medium_threshold": 7,
+    "roi_polygon": null
+  },
+  "wrong_way": {
+    "enabled": true,
+    "expected_direction": "TOP_TO_BOTTOM",
+    "min_tracking_frames": 10,
+    "min_displacement_px": 35,
+    "consistency_ratio": 0.70
+  },
+  "red_light": {
+    "enabled": true,
+    "stop_line": {
+      "x1": 80,
+      "y1": 340,
+      "x2": 560,
+      "y2": 340
+    },
+    "traffic_signal_state": "RED",
+    "prohibited_direction": "TOP_TO_BOTTOM"
+  },
+  "accident_detection": {
+    "enabled": true,
+    "sudden_stop_speed_drop_ratio": 0.75,
+    "min_frames_stationary": 18,
+    "proximity_distance_px": 55,
+    "min_pre_accident_speed_px": 5.0
+  },
+  "emergency_detection": {
+    "enabled": true,
+    "use_custom_model": false,
+    "alert_priority": "CRITICAL"
+  },
+  "event_engine": {
+    "cooldown_seconds": 8.0,
+    "save_evidence_snapshots": true,
+    "save_evidence_clips": true,
+    "clip_buffer_seconds": 2,
+    "csv_log_path": "data/logs/events.csv",
+    "json_log_path": "data/logs/events.json",
+    "evidence_dir": "data/evidence"
+  }
+}
