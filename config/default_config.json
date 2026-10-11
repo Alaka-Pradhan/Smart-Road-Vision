@@ -56,6 +56,11 @@
   },
   "accident_detection": {
     "enabled": true,
+    "use_ai_model": true,
+    "ai_model_path": "models/accident_yolo11x.pt",
+    "ai_confidence_threshold": 0.30,
+    "ai_imgsz": 320,
+    "ai_scan_interval_frames": 15,
     "sudden_stop_speed_drop_ratio": 0.75,
     "min_frames_stationary": 18,
     "proximity_distance_px": 55,

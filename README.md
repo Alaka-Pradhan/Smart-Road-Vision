@@ -85,14 +85,18 @@ Smart Road Vision/
 │   ├── default_config.json     # Factory default system parameters
 │   └── user_config.json        # User customized saved parameters
 ├── models/
-│   └── yolov8n.pt              # YOLOv8 nano neural network weights (~6.5MB)
+│   ├── yolov8n.pt              # YOLOv8 nano vehicle & tracking weights (~6.5MB)
+│   └── accident_yolo11x.pt     # Fine-tuned YOLO11x Traffic Accident Detection weights (~114MB)
+├── utils/
+│   ├── download_accident_model.py # Automated HuggingFace weights downloader
+│   └── generate_traffic_video.py  # Synthetic test video generator
 ├── src/
 │   ├── __init__.py
 │   ├── config_manager.py       # Configuration loading, validation, and persistence
 │   ├── detector.py             # Ultralytics YOLOv8 inference wrapper
 │   ├── tracker.py              # Multi-object tracking, trajectory deque, velocity & counting
 │   ├── violation_detector.py   # Wrong-way trajectory and stop-line crossing logic
-│   ├── accident_detector.py    # Multi-indicator heuristic collision detection
+│   ├── accident_detector.py    # Dual-Engine: Fine-tuned YOLO11x AI Vision + Kinematics Heuristics
 │   ├── emergency_detector.py   # Priority emergency vehicle detection interface
 │   ├── traffic_analyzer.py     # Density estimation (LOW/MED/HIGH) & time-series logging
 │   ├── evidence_manager.py     # Annotated JPEG snapshot & MP4 clip generator

@@ -39,26 +39,43 @@ class AccidentsView(tk.Frame):
             font=Theme.FONT_TITLE
         ).pack(anchor="w")
 
-        # Academic disclaimer note
-        note_frame = tk.Frame(self, bg="#2d1515", highlightbackground=Theme.ACCENT_RED, highlightthickness=1, padx=10, pady=6)
+        # AI Vision Engine Status Banner
+        ai_loaded = (
+            hasattr(self.controller, "accident_detector")
+            and getattr(self.controller.accident_detector, "is_ai_loaded", lambda: False)()
+        )
+        banner_bg = "#13231e" if ai_loaded else "#2d1515"
+        banner_border = Theme.ACCENT_GREEN if ai_loaded else Theme.ACCENT_RED
+        banner_fg_title = Theme.ACCENT_GREEN if ai_loaded else Theme.ACCENT_RED
+        banner_title = (
+            "🤖 DUAL-ENGINE AI VISION ACTIVE: Fine-Tuned Ultralytics YOLO11x (Enos-123) + Kinematics Verification"
+            if ai_loaded else
+            "⚠ HEURISTIC TRAJECTORY KINEMATICS ENGINE (YOLO11x Deep Learning Standby)"
+        )
+        banner_desc = (
+            "Deep learning accident classifier trained on traffic incident surveillance data. "
+            "Operates via asynchronous worker thread with spatial cooldown to guarantee fluid 30 FPS playback."
+            if ai_loaded else
+            "Analyzes sudden deceleration, multi-vehicle proximity, and sustained roadway standstill. "
+            "YOLO11x model weights can be placed in models/accident_yolo11x.pt for direct AI classification."
+        )
+
+        note_frame = tk.Frame(self, bg=banner_bg, highlightbackground=banner_border, highlightthickness=1, padx=10, pady=6)
         note_frame.pack(fill=tk.X, pady=(0, 10))
 
         tk.Label(
             note_frame,
-            text="⚠ HEURISTIC DETECTION NOTICE (ACADEMIC FINAL YEAR PROJECT):",
-            bg="#2d1515",
-            fg=Theme.ACCENT_RED,
+            text=banner_title,
+            bg=banner_bg,
+            fg=banner_fg_title,
             font=Theme.FONT_BODY_BOLD
         ).pack(anchor="w")
 
         tk.Label(
             note_frame,
-            text=(
-                "These alerts are generated using heuristic motion trajectory rules (sudden deceleration, multi-vehicle proximity, "
-                "and sustained roadway standstill). True automated collision confirmation requires evaluation on calibrated datasets."
-            ),
-            bg="#2d1515",
-            fg="#fca5a5",
+            text=banner_desc,
+            bg=banner_bg,
+            fg="#94a3b8",
             font=Theme.FONT_SMALL,
             wraplength=980,
             justify="left"

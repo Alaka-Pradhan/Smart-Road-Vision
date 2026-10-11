@@ -135,6 +135,8 @@ class VideoProcessor:
             self._thread.join(timeout=1.5)
 
         self._release_capture()
+        if hasattr(self.accident_detector, "stop"):
+            self.accident_detector.stop()
         logger.info("Video processor stopped cleanly.")
 
     def reset(self):
@@ -265,8 +267,8 @@ class VideoProcessor:
                         frame_buffer=list(self.rolling_buffer)
                     )
 
-            # 5. Check possible accident heuristics
-            accident_events = self.accident_detector.analyze(active_tracks)
+            # 5. Check possible accident (Dual-Engine: AI YOLO11x + Kinematics)
+            accident_events = self.accident_detector.analyze(active_tracks, frame=raw_frame_copy)
             for acc_event in accident_events:
                 self.event_engine.dispatch_event(
                     raw_event=acc_event,
@@ -360,7 +362,31 @@ class VideoProcessor:
                     cv2.LINE_AA
                 )
 
-        # 3. Direction Arrow Indicator
+        # 3. Draw AI Accident Vision Detections (YOLO11x)
+        if hasattr(self.accident_detector, "get_active_accident_boxes"):
+            ai_accidents = self.accident_detector.get_active_accident_boxes()
+            for acc in ai_accidents:
+                ax1, ay1, ax2, ay2 = acc["bbox"]
+                conf = acc.get("confidence", 0.0)
+                # Outer flashing red box with double border
+                cv2.rectangle(out, (ax1, ay1), (ax2, ay2), (0, 0, 255), 3)
+                cv2.rectangle(out, (ax1 - 2, ay1 - 2), (ax2 + 2, ay2 + 2), (50, 50, 255), 1)
+
+                acc_label = f"CRITICAL: ACCIDENT DETECTED (AI YOLO11x: {int(conf * 100)}%)"
+                (atw, ath), _ = cv2.getTextSize(acc_label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+                cv2.rectangle(out, (ax1, max(0, ay1 - ath - 8)), (ax1 + atw + 8, ay1), (0, 0, 200), -1)
+                cv2.putText(
+                    out,
+                    acc_label,
+                    (ax1 + 4, max(ath, ay1 - 4)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.45,
+                    (255, 255, 255),
+                    1,
+                    cv2.LINE_AA
+                )
+
+        # 4. Direction Arrow Indicator
         if self.show_direction_arrow:
             exp_dir = self.violation_detector.expected_direction
             cv2.putText(

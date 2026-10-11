@@ -261,6 +261,19 @@ class SmartRoadVisionApp:
             anchor="w"
         ).pack(fill=tk.X, pady=(2, 0))
 
+        # Accident AI Model status
+        acc_ai_loaded = getattr(self.accident_detector, "is_ai_loaded", lambda: False)()
+        acc_status = "YOLO11x ACCIDENT: ACTIVE" if acc_ai_loaded else "ACCIDENT AI: STANDBY"
+        acc_col = Theme.ACCENT_PURPLE if acc_ai_loaded else Theme.TEXT_MUTED
+        tk.Label(
+            bot_info,
+            text=f"● {acc_status}",
+            bg="#080d1a",
+            fg=acc_col,
+            font=("Segoe UI", 8, "bold"),
+            anchor="w"
+        ).pack(fill=tk.X, pady=(2, 0))
+
         tk.Label(
             bot_info,
             text="SafeRoad Intelligence v1.0\nComputer Vision & Road Safety",

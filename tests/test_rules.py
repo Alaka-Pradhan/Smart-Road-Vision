@@ -114,6 +114,46 @@ class TestTrafficRules(unittest.TestCase):
         res_high = self.density_analyzer.analyze(tracks_high)
         self.assertEqual(res_high["level"], "HIGH")
 
+    def test_accident_detector_dual_engine(self):
+        """Verifies PossibleAccidentDetector initializes YOLO11x and handles tracks."""
+        from src.accident_detector import PossibleAccidentDetector
+        acc_cfg = {
+            "accident_detection": {
+                "enabled": True,
+                "use_ai_model": True,
+                "ai_model_path": "models/accident_yolo11x.pt",
+                "ai_confidence_threshold": 0.30,
+                "ai_imgsz": 320,
+                "sudden_stop_speed_drop_ratio": 0.75,
+                "min_frames_stationary": 5,
+                "proximity_distance_px": 60,
+                "min_pre_accident_speed_px": 3.0
+            }
+        }
+        detector = PossibleAccidentDetector(acc_cfg)
+        self.assertTrue(detector.is_ai_loaded())
+        info = detector.get_model_info()
+        self.assertEqual(info["model_type"], "YOLO11x")
+        self.assertTrue(info["is_loaded"])
+
+        # Test kinematics sudden stop trigger
+        v = TrackedObject(1, 2, "car", [100, 100, 150, 150], (125, 125), 1)
+        # 15 frames of fast movement (speed = 10 px/f)
+        for f in range(2, 22):
+            v.update([100, 100 + (f * 10), 150, 150 + (f * 10)], (125, 125 + (f * 10)), f)
+        # 13 frames of complete stop
+        last_y = 125 + (21 * 10)
+        for f in range(22, 35):
+            v.update([100, last_y - 25, 150, last_y + 25], (125, last_y), f)
+
+        alerts = detector.analyze([v])
+        self.assertTrue(any(a["event_type"] == "POSSIBLE_ACCIDENT" for a in alerts))
+
+        detector.reset()
+        self.assertEqual(len(detector._alerted_accident_ids), 0)
+        detector.stop()
+
 
 if __name__ == "__main__":
     unittest.main()
+
