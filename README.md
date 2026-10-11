@@ -78,7 +78,9 @@ Smart Road Vision/
 ├── main.py                     # Primary executable entry point & CLI controller
 ├── requirements.txt            # Python package dependencies
 ├── README.md                   # Complete architectural documentation & viva guide
-├── sample_traffic.mp4          # Synthetic test video for instant offline demonstration
+├── sample_traffic.mp4          # Real-life 720p city intersection CCTV traffic video (~1 min)
+├── real_traffic_highway.mp4    # Real-life multi-lane highway surveillance video (cars, trucks, buses)
+├── sample_synthetic_traffic.mp4# Synthetic simulation test video for offline viva testing
 ├── config/
 │   ├── default_config.json     # Factory default system parameters
 │   └── user_config.json        # User customized saved parameters

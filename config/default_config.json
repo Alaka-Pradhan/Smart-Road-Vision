@@ -46,12 +46,12 @@
   "red_light": {
     "enabled": true,
     "stop_line": {
-      "x1": 80,
-      "y1": 340,
-      "x2": 560,
-      "y2": 340
+      "x1": 50,
+      "y1": 450,
+      "x2": 1230,
+      "y2": 450
     },
-    "traffic_signal_state": "RED",
+    "traffic_signal_state": "GREEN",
     "prohibited_direction": "TOP_TO_BOTTOM"
   },
   "accident_detection": {

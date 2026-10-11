@@ -19,12 +19,15 @@ class GalleryView(tk.Frame):
         super().__init__(parent, bg=Theme.BG_MAIN, padx=14, pady=12, **kwargs)
         self.controller = controller
         self.active_category = "ALL"
-        self._thumb_cache = []  # Keep references so Python garbage collector does not delete them
+        self.current_page = 0
+        self.page_size = 24
+        self._all_filtered_items = []
+        self._thumb_cache = []
 
         # Header Bar
         self._build_header()
 
-        # Category Filter Bar
+        # Category Filter & Pagination Bar
         self._build_filter_bar()
 
         # Scrollable Thumbnail Grid
@@ -93,6 +96,44 @@ class GalleryView(tk.Frame):
             btn.pack(side=tk.LEFT, padx=3)
             self.filter_buttons[cat_val] = btn
 
+        # Pagination controls on right side of filter bar
+        pag_frame = tk.Frame(fbar, bg=Theme.BG_CARD)
+        pag_frame.pack(side=tk.RIGHT)
+
+        self.btn_prev = tk.Button(
+            pag_frame,
+            text="◀ Prev",
+            bg="#334155",
+            fg=Theme.TEXT_PRIMARY,
+            font=Theme.FONT_SMALL,
+            relief="flat",
+            padx=8,
+            command=self._prev_page
+        )
+        self.btn_prev.pack(side=tk.LEFT, padx=2)
+
+        self.lbl_page_info = tk.Label(
+            pag_frame,
+            text="Page 1",
+            bg=Theme.BG_CARD,
+            fg=Theme.TEXT_SECONDARY,
+            font=Theme.FONT_SMALL,
+            padx=6
+        )
+        self.lbl_page_info.pack(side=tk.LEFT)
+
+        self.btn_next = tk.Button(
+            pag_frame,
+            text="Next ▶",
+            bg="#334155",
+            fg=Theme.TEXT_PRIMARY,
+            font=Theme.FONT_SMALL,
+            relief="flat",
+            padx=8,
+            command=self._next_page
+        )
+        self.btn_next.pack(side=tk.LEFT, padx=2)
+
     def _build_grid(self):
         container = tk.Frame(self, bg=Theme.BG_CARD, highlightbackground=Theme.BORDER, highlightthickness=1)
         container.pack(fill=tk.BOTH, expand=True)
@@ -112,13 +153,15 @@ class GalleryView(tk.Frame):
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.bind("<Configure>", self._on_resize)
-        self.refresh_gallery()
+        # Note: Do not eager load all thousands of evidence files here during app startup!
+        # It is loaded on demand when the user clicks 'Evidence Gallery' tab.
 
     def _on_resize(self, event):
         self.canvas.itemconfig(self.canvas_window, width=event.width - 24)
 
     def _set_category(self, cat: str):
         self.active_category = cat
+        self.current_page = 0
         for cval, btn in self.filter_buttons.items():
             is_active = (cval == cat)
             btn.config(
@@ -127,15 +170,42 @@ class GalleryView(tk.Frame):
             )
         self.refresh_gallery()
 
+    def _prev_page(self):
+        if self.current_page > 0:
+            self.current_page -= 1
+            self._render_current_page()
+
+    def _next_page(self):
+        max_pages = max(1, (len(self._all_filtered_items) + self.page_size - 1) // self.page_size)
+        if self.current_page + 1 < max_pages:
+            self.current_page += 1
+            self._render_current_page()
+
     def refresh_gallery(self):
-        """Scans evidence directory and renders thumbnail grid."""
+        """Scans evidence directory and caches filtered item metadata."""
+        items = self.controller.evidence_manager.get_all_evidence()
+        if self.active_category != "ALL":
+            items = [it for it in items if it["category"] == self.active_category]
+
+        self._all_filtered_items = items
+        self.current_page = 0
+        self._render_current_page()
+
+    def _render_current_page(self):
+        """Renders only the current page of thumbnails (max 24 items) to conserve GDI resources."""
         for w in self.grid_frame.winfo_children():
             w.destroy()
         self._thumb_cache.clear()
 
-        items = self.controller.evidence_manager.get_all_evidence()
-        if self.active_category != "ALL":
-            items = [it for it in items if it["category"] == self.active_category]
+        items = self._all_filtered_items
+        total = len(items)
+        max_pages = max(1, (total + self.page_size - 1) // self.page_size)
+        self.current_page = min(self.current_page, max_pages - 1)
+
+        # Update page label & button states
+        self.lbl_page_info.config(text=f"Page {self.current_page + 1} of {max_pages} ({total} items)")
+        self.btn_prev.config(state="normal" if self.current_page > 0 else "disabled")
+        self.btn_next.config(state="normal" if self.current_page + 1 < max_pages else "disabled")
 
         if not items:
             lbl = tk.Label(
@@ -149,9 +219,13 @@ class GalleryView(tk.Frame):
             lbl.pack(fill=tk.BOTH, expand=True)
             return
 
-        # Render responsive grid (columns = 4)
+        # Render current page slice
+        start_idx = self.current_page * self.page_size
+        end_idx = min(start_idx + self.page_size, total)
+        page_items = items[start_idx:end_idx]
+
         cols = 4
-        for idx, it in enumerate(items):
+        for idx, it in enumerate(page_items):
             row_idx = idx // cols
             col_idx = idx % cols
             card = self._create_thumbnail_card(it)

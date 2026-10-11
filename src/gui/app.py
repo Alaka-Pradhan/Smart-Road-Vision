@@ -45,9 +45,25 @@ class SmartRoadVisionApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("Smart Road Vision — AI Intelligent Traffic Monitoring & Road Safety System")
-        self.root.geometry("1280x820")
-        self.root.minsize(1080, 680)
+
+        # Calculate optimal window dimensions for laptop/desktop screen (e.g. 1366x768)
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+
+        target_w = min(1280, max(960, screen_w - 60))
+        target_h = min(800, max(560, screen_h - 75))
+        pos_x = max(0, (screen_w - target_w) // 2)
+        pos_y = max(0, (screen_h - target_h) // 2 - 15)
+
+        self.root.geometry(f"{target_w}x{target_h}+{pos_x}+{pos_y}")
+        self.root.minsize(960, 560)
         self.root.configure(bg=Theme.BG_MAIN)
+
+        # Bring window to foreground
+        self.root.lift()
+        self.root.attributes("-topmost", True)
+        self.root.after(300, lambda: self.root.attributes("-topmost", False))
+        self.root.focus_force()
 
         Theme.apply_ttk_theme(self.root)
 
@@ -125,8 +141,14 @@ class SmartRoadVisionApp:
         self.main_container = tk.Frame(self.root, bg=Theme.BG_MAIN)
         self.main_container.pack(fill=tk.BOTH, expand=True)
 
-        # Left Sidebar (width 230)
-        self.sidebar = tk.Frame(self.main_container, bg=Theme.BG_SIDEBAR, width=230, highlightbackground=Theme.BORDER, highlightthickness=1)
+        # Left Sidebar (prominent width 250, distinct dark navy background and border)
+        self.sidebar = tk.Frame(
+            self.main_container,
+            bg=Theme.BG_SIDEBAR,
+            width=250,
+            highlightbackground=Theme.BORDER,
+            highlightthickness=1
+        )
         self.sidebar.pack(side=tk.LEFT, fill=tk.Y)
         self.sidebar.pack_propagate(False)
 
@@ -138,12 +160,12 @@ class SmartRoadVisionApp:
 
     def _build_sidebar(self):
         # Brand Banner
-        brand_frame = tk.Frame(self.sidebar, bg=Theme.BG_SIDEBAR, padx=14, pady=16)
+        brand_frame = tk.Frame(self.sidebar, bg=Theme.BG_SIDEBAR, padx=16, pady=16)
         brand_frame.pack(fill=tk.X)
 
         tk.Label(
             brand_frame,
-            text="SMART ROAD VISION",
+            text="🛣 SMART ROAD VISION",
             bg=Theme.BG_SIDEBAR,
             fg=Theme.ACCENT_BLUE,
             font=("Segoe UI", 12, "bold"),
@@ -152,73 +174,111 @@ class SmartRoadVisionApp:
 
         tk.Label(
             brand_frame,
-            text="SafeRoad AI Intelligence",
+            text="AI Road Traffic & Safety System",
+            bg=Theme.BG_SIDEBAR,
+            fg=Theme.TEXT_SECONDARY,
+            font=("Segoe UI", 9),
+            anchor="w"
+        ).pack(fill=tk.X, pady=(2, 0))
+
+        tk.Label(
+            brand_frame,
+            text="B.Tech Final Year Major Project",
             bg=Theme.BG_SIDEBAR,
             fg=Theme.TEXT_MUTED,
             font=("Segoe UI", 8),
             anchor="w"
-        ).pack(fill=tk.X)
+        ).pack(fill=tk.X, pady=(1, 0))
 
         # Divider line
-        tk.Frame(self.sidebar, bg=Theme.BORDER, height=1).pack(fill=tk.X, pady=(0, 10))
+        tk.Frame(self.sidebar, bg=Theme.BORDER, height=1).pack(fill=tk.X, pady=(4, 10))
 
         # 9 Navigation Buttons
         self.nav_items = [
-            ("Dashboard", "📊 Dashboard"),
-            ("Live Monitoring", "📹 Live Monitoring"),
-            ("Traffic Violations", "🚨 Traffic Violations"),
-            ("Accident Alerts", "💥 Accident Alerts"),
-            ("Emergency Vehicles", "🚑 Emergency Fleet"),
-            ("Traffic Analytics", "📈 Traffic Analytics"),
-            ("Event Logs", "📋 Event Logs"),
-            ("Evidence Gallery", "🖼 Evidence Gallery"),
-            ("Settings", "⚙ Settings")
+            ("Dashboard", "📊  Dashboard"),
+            ("Live Monitoring", "📹  Live Monitoring"),
+            ("Traffic Violations", "🚨  Traffic Violations"),
+            ("Accident Alerts", "💥  Accident Alerts"),
+            ("Emergency Vehicles", "🚑  Emergency Fleet"),
+            ("Traffic Analytics", "📈  Traffic Analytics"),
+            ("Event Logs", "📋  Event Logs"),
+            ("Evidence Gallery", "🖼  Evidence Gallery"),
+            ("Settings", "⚙  Settings")
         ]
 
         self.nav_buttons = {}
         for key, label in self.nav_items:
             btn = tk.Button(
                 self.sidebar,
-                text=f"  {label}",
+                text=label,
                 bg=Theme.BG_SIDEBAR,
                 fg=Theme.TEXT_SECONDARY,
                 font=Theme.FONT_BODY_BOLD,
                 relief="flat",
                 anchor="w",
-                padx=12,
-                pady=10,
+                padx=16,
+                pady=9,
                 bd=0,
                 cursor="hand2",
                 command=lambda k=key: self.navigate_to(k)
             )
-            btn.pack(fill=tk.X, padx=6, pady=2)
+            btn.pack(fill=tk.X, padx=8, pady=2)
+
+            # Interactive hover highlight
+            btn.bind("<Enter>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, True))
+            btn.bind("<Leave>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, False))
             self.nav_buttons[key] = btn
 
         # Bottom System Info Badge
-        bot_info = tk.Frame(self.sidebar, bg="#080c16", padx=12, pady=12, highlightbackground=Theme.BORDER, highlightthickness=1)
-        bot_info.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=8)
+        bot_info = tk.Frame(
+            self.sidebar,
+            bg="#080d1a",
+            padx=14,
+            pady=12,
+            highlightbackground=Theme.BORDER,
+            highlightthickness=1
+        )
+        bot_info.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
         # Model readiness status
-        mod_status = "YOLO READY" if self.detector.is_loaded else "MODEL MISSING"
+        mod_status = "YOLOv8 AI: READY" if self.detector.is_loaded else "MODEL MISSING"
         mod_col = Theme.ACCENT_GREEN if self.detector.is_loaded else Theme.ACCENT_RED
         tk.Label(
             bot_info,
             text=f"● {mod_status}",
-            bg="#080c16",
+            bg="#080d1a",
             fg=mod_col,
-            font=("Segoe UI", 8, "bold"),
+            font=("Segoe UI", 9, "bold"),
             anchor="w"
         ).pack(fill=tk.X)
 
         tk.Label(
             bot_info,
-            text="Final Year B.Tech CSE Project\nSafeRoad Vision Engine v1.0",
-            bg="#080c16",
+            text="● CCTV PIPELINE: ACTIVE",
+            bg="#080d1a",
+            fg=Theme.ACCENT_BLUE,
+            font=("Segoe UI", 8, "bold"),
+            anchor="w"
+        ).pack(fill=tk.X, pady=(2, 0))
+
+        tk.Label(
+            bot_info,
+            text="SafeRoad Intelligence v1.0\nComputer Vision & Road Safety",
+            bg="#080d1a",
             fg=Theme.TEXT_MUTED,
             font=("Segoe UI", 7),
             justify="left",
             anchor="w"
-        ).pack(fill=tk.X, pady=(2, 0))
+        ).pack(fill=tk.X, pady=(4, 0))
+
+    def _on_nav_hover(self, btn: tk.Button, key: str, is_hover: bool):
+        """Micro-animation hover effect on sidebar buttons."""
+        if key == self.active_view_name:
+            return
+        if is_hover:
+            btn.config(bg="#141e33", fg=Theme.TEXT_PRIMARY)
+        else:
+            btn.config(bg=Theme.BG_SIDEBAR, fg=Theme.TEXT_SECONDARY)
 
     def _build_views(self):
         """Initializes all 9 view frames."""

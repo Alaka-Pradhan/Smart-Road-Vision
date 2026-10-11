@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Runtime evidence snapshots and test artifacts
+data/evidence/*/*.jpg
+data/evidence/*/*.mp4
+data/logs/test_integration_events.*
+
+# IDE and environments
+.vscode/
+.idea/
+.venv/
+venv/
+*.tmp
+*.bak

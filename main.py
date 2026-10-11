@@ -27,6 +27,11 @@ logger = logging.getLogger("SmartRoadVision")
 
 
 def main():
+    # Guarantee working directory is always the project root
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.getcwd() != project_dir:
+        os.chdir(project_dir)
+
     parser = argparse.ArgumentParser(description="Smart Road Vision - AI Intelligent Traffic Monitoring System")
     parser.add_argument("--demo", action="store_true", help="Launch GUI with synthetic traffic video demo")
     parser.add_argument("--video", type=str, default="", help="Path to video file to monitor")

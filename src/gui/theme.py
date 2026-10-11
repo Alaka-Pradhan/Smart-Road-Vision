@@ -12,10 +12,12 @@ class Theme:
     # Color Palette - High-tech Traffic Control Room
     BG_MAIN = "#0b0f19"         # Deep Slate Black
     BG_SIDEBAR = "#0d1322"      # Dark Navy
-    BG_CARD = "#161e2e"         # Surface Slate
+    BG_CARD = "#141c2e"         # Surface Slate
     BG_CARD_LIGHT = "#1e293b"   # Lighter Surface
+    BG_SURFACE = "#101726"      # Surface secondary
     BG_INPUT = "#0f172a"        # Input background
-    BORDER = "#2a364f"          # Subtle Divider
+    BORDER = "#334155"          # Defined Divider Border
+    BORDER_LIGHT = "#475569"    # High-contrast border
     BORDER_FOCUS = "#38bdf8"    # Active border
 
     TEXT_PRIMARY = "#f8fafc"    # Bright White
